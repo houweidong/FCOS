@@ -4,7 +4,7 @@ import torch
 from .bounding_box import BoxList
 
 from maskrcnn_benchmark.layers import nms as _box_nms
-
+import numpy as np
 
 def boxlist_nms(boxlist, nms_thresh, max_proposals=-1, score_field="scores"):
     """
@@ -29,6 +29,33 @@ def boxlist_nms(boxlist, nms_thresh, max_proposals=-1, score_field="scores"):
         keep = keep[: max_proposals]
     boxlist = boxlist[keep]
     return boxlist.convert(mode)
+
+
+def boxlist_lof_nms(boxlist):
+
+    scores = boxlist.get_field("scores")
+    lof_tag = boxlist.get_field("tag").cpu().asnumpy()
+    device = scores.device if isinstance(scores, torch.Tensor) else torch.device("cpu")
+    scores = scores.cpu().asnumpy()
+    tag_dict = {}
+    keep_list = []
+    for i in range(len(lof_tag)):
+        present_tag = lof_tag[i]
+        if present_tag in tag_dict:
+            if scores[i] > tag_dict[present_tag][0]:
+                tag_dict[present_tag][0] = scores[i]
+                tag_dict[present_tag][1] = i
+        else:
+            tag_dict[present_tag] = [scores[i], i]
+    for i in range(len(lof_tag)):
+        present_tag = lof_tag[i]
+        if i == tag_dict[present_tag][1]:
+            keep_list.append(True)
+        else:
+            keep_list.append(False)
+    keep_list = torch.ByteTensor(keep_list, device=device)
+    boxlist = boxlist[keep_list]
+    return boxlist
 
 
 def remove_small_boxes(boxlist, min_size):

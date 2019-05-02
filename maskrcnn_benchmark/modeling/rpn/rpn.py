@@ -7,6 +7,7 @@ from maskrcnn_benchmark.modeling import registry
 from maskrcnn_benchmark.modeling.box_coder import BoxCoder
 from maskrcnn_benchmark.modeling.rpn.retinanet.retinanet import build_retinanet
 from maskrcnn_benchmark.modeling.rpn.fcos.fcos import build_fcos
+from maskrcnn_benchmark.modeling.rpn.lof.lof import build_lof
 from .loss import make_rpn_loss_evaluator
 from .anchor_generator import make_anchor_generator
 from .inference import make_rpn_postprocessor
@@ -206,5 +207,7 @@ def build_rpn(cfg, in_channels):
         return build_fcos(cfg, in_channels)
     if cfg.MODEL.RETINANET_ON:
         return build_retinanet(cfg, in_channels)
+    if cfg.MODEL.LOF_ON:
+        return build_lof(cfg, in_channels)
 
     return RPNModule(cfg, in_channels)

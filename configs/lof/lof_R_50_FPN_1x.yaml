@@ -2,13 +2,18 @@ MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
   WEIGHT: "catalog://ImageNetPretrained/MSRA/R-50"
   RPN_ONLY: True
-  FCOS_ON: True
+  LOF_ON: True
   BACKBONE:
     CONV_BODY: "R-50-FPN-RETINANET"
   RESNETS:
     BACKBONE_OUT_CHANNELS: 256
   RETINANET:
-    USE_C5: False # FCOS uses P5 instead of C5
+    USE_C5: False # LOF uses P5 instead of C5
+  LOF:
+    LOF_TOWER_BRANCH: "new" # new cls or bbox
+    NUM_LOF: 1
+    PULL_FACTOR: 0.1
+    PUSH_FACTOR: 0.1
 DATASETS:
 #  TRAIN: ("coco_2014_train", "coco_2014_valminusminival")
 #  TEST: ("coco_2014_minival",)
@@ -29,3 +34,4 @@ SOLVER:
   # IMS_PER_BATCH: 16
   IMS_PER_BATCH: 2
   WARMUP_METHOD: "constant"
+

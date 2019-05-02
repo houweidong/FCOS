@@ -14,6 +14,7 @@ from .roi_pool import roi_pool
 from .smooth_l1_loss import smooth_l1_loss
 from .sigmoid_focal_loss import SigmoidFocalLoss
 from .iou_loss import IOULoss
+from .ae_loss import AELoss
 from .scale import Scale
 
 

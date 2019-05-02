@@ -23,7 +23,8 @@ _C = CN()
 _C.MODEL = CN()
 _C.MODEL.RPN_ONLY = False
 _C.MODEL.MASK_ON = False
-_C.MODEL.FCOS_ON = True
+_C.MODEL.FCOS_ON = False
+_C.MODEL.LOF_ON = True
 _C.MODEL.RETINANET_ON = False
 _C.MODEL.KEYPOINT_ON = False
 _C.MODEL.DEVICE = "cuda"
@@ -295,6 +296,31 @@ _C.MODEL.FCOS.LOSS_GAMMA = 2.0
 
 # the number of convolutions used in the cls and bbox tower
 _C.MODEL.FCOS.NUM_CONVS = 4
+
+# ---------------------------------------------------------------------------- #
+# LOF Options
+# ---------------------------------------------------------------------------- #
+_C.MODEL.LOF = CN()
+_C.MODEL.LOF.NUM_CLASSES = 81  # the number of classes including background
+_C.MODEL.LOF.NUM_LOF = 1  # the number of lof output
+_C.MODEL.LOF.FPN_STRIDES = [8, 16, 32, 64, 128]
+_C.MODEL.LOF.PRIOR_PROB = 0.01
+_C.MODEL.LOF.INFERENCE_TH = 0.05
+_C.MODEL.LOF.AVG_WEIGHT = True
+_C.MODEL.LOF.LOF_TOWER_BRANCH = 'new'
+# _C.MODEL.LOF.NMS_TH = 0.6
+_C.MODEL.LOF.PRE_NMS_TOP_N = 1000
+
+# Focal loss parameter: alpha
+_C.MODEL.LOF.LOSS_ALPHA = 0.25
+# Focal loss parameter: gamma
+_C.MODEL.LOF.LOSS_GAMMA = 2.0
+# Focal loss parameter: pull, push factor
+_C.MODEL.LOF.PULL_FACTOR = 0.1
+_C.MODEL.LOF.PUSH_FACTOR = 0.1
+
+# the number of convolutions used in the cls and bbox tower
+_C.MODEL.LOF.NUM_CONVS = 4
 
 # ---------------------------------------------------------------------------- #
 # RetinaNet Options (Follow the Detectron version)
