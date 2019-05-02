@@ -59,7 +59,7 @@ FCOS_X_101_64x4d_FPN_2x | 77.7 | Yes | 140ms | 43.0 | 43.2 | [download](https://
 
 The following command line will train FCOS_R_50_FPN_1x on 8 GPUs with Synchronous Stochastic Gradient Descent (SGD):
 
-    python -m torch.distributed.launch \
+    python3 -m torch.distributed.launch \
         --nproc_per_node=8 \
         --master_port=$((RANDOM + 10000)) \
         tools/train_net.py \
@@ -67,6 +67,17 @@ The following command line will train FCOS_R_50_FPN_1x on 8 GPUs with Synchronou
         --config-file configs/fcos/fcos_R_50_FPN_1x.yaml \
         DATALOADER.NUM_WORKERS 2 \
         OUTPUT_DIR training_dir/fcos_R_50_FPN_1x
+        
+The following command line will train FCOS_R_50_FPN_1x on 8 GPUs with Synchronous Stochastic Gradient Descent (SGD):
+
+    python3 -m torch.distributed.launch \
+        --nproc_per_node=8 \
+        --master_port=$((RANDOM + 10000)) \
+        tools/train_net.py \
+        --skip-test \
+        --config-file configs/lof/lof_R_50_FPN_1x.yaml \
+        DATALOADER.NUM_WORKERS 2 \
+        OUTPUT_DIR training_dir/lof_R_50_FPN_1x
         
 Note that:
  
