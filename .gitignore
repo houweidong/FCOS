@@ -32,4 +32,8 @@ dist/
 # my
 .mytest.py
 **/log.txt
+**/last_checkpoint
+tools/inference
+
+
 
