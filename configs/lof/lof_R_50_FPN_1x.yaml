@@ -14,6 +14,7 @@ MODEL:
     NUM_LOF: 1
     PULL_FACTOR: 0.1
     PUSH_FACTOR: 0.1
+    USE_LOF: True
 DATASETS:
 #  TRAIN: ("coco_2014_train", "coco_2014_valminusminival")
 #  TEST: ("coco_2014_minival",)

@@ -1,8 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import argparse
 import cv2
+import os
 
 from maskrcnn_benchmark.config import cfg
+from maskrcnn_benchmark.utils.imports import import_file
 from predictor import COCODemo
 
 import time
@@ -19,13 +21,13 @@ def main():
     parser.add_argument(
         "--confidence-threshold",
         type=float,
-        default=0.7,
+        default=0.5,
         help="Minimum score for the prediction to be shown",
     )
     parser.add_argument(
         "--min-image-size",
         type=int,
-        default=224,
+        default=800,
         help="Smallest size of the image to feed to the model. "
             "Model was trained with 800, which gives best results",
     )
@@ -41,6 +43,10 @@ def main():
         default=2,
         help="Number of heatmaps per dimension to show",
     )
+    parser.add_argument(
+        '-c', '--cam',
+        action='store_true',
+        help='whether use the cam or val image list')
     parser.add_argument(
         "opts",
         help="Modify model config options using the command-line",
@@ -64,16 +70,38 @@ def main():
         min_image_size=args.min_image_size,
     )
 
-    cam = cv2.VideoCapture(0)
-    while True:
+    if args.cam:
+        cam = cv2.VideoCapture(0)
+        while True:
+            start_time = time.time()
+            ret_val, img = cam.read()
+            composite = coco_demo.run_on_opencv_image(img)
+            print("Time: {:.2f} s / img".format(time.time() - start_time))
+            cv2.imshow("COCO detections", composite)
+            if cv2.waitKey(1) == 27:
+                break  # esc to quit
+        cv2.destroyAllWindows()
+    else:
+        paths_catalog = import_file(
+            "maskrcnn_benchmark.config.paths_catalog", cfg.PATHS_CATALOG, True
+        )
+        dataset_list = cfg.DATASETS.TEST
+        for dataset_name in dataset_list:
+            imspth = paths_catalog.DatasetCatalog.get(dataset_name)['args']['root']
+        img_names = os.listdir(imspth)
         start_time = time.time()
-        ret_val, img = cam.read()
-        composite = coco_demo.run_on_opencv_image(img)
-        print("Time: {:.2f} s / img".format(time.time() - start_time))
-        cv2.imshow("COCO detections", composite)
-        if cv2.waitKey(1) == 27:
-            break  # esc to quit
-    cv2.destroyAllWindows()
+        for name in img_names:
+            img_path = os.path.join(imspth, name)
+            try:
+                img = cv2.imread(img_path)
+            except Exception as info:
+                print(info)
+                continue
+
+            composite = coco_demo.run_on_opencv_image(img)
+            print("Time: {:.2f} s / img".format(time.time() - start_time))
+            cv2.imshow('COCO detections', composite)
+            cv2.waitKey(0)
 
 
 if __name__ == "__main__":

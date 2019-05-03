@@ -24,7 +24,8 @@ class LOFPostProcessor(torch.nn.Module):
         fpn_post_nms_top_n,
         min_size,
         num_classes,
-        num_lof
+        num_lof,
+        use_lof
     ):
         """
         Arguments:
@@ -44,6 +45,10 @@ class LOFPostProcessor(torch.nn.Module):
         self.min_size = min_size
         self.num_classes = num_classes
         self.num_lof = num_lof
+        self.use_lof = use_lof
+        self.select_fuc = self.select_over_all_levels if self.use_lof else self.select_over_all_levels_fcos
+        self.forward_single_map = self.forward_for_single_feature_map if \
+            self.use_lof else self.forward_for_single_feature_map_fcos
 
     def forward_for_single_feature_map(
             self, locations, box_cls,
@@ -75,7 +80,7 @@ class LOFPostProcessor(torch.nn.Module):
         pre_nms_top_n = pre_nms_top_n.clamp(max=self.pre_nms_top_n)
 
         # multiply the classification scores with centerness scores
-        box_cls = box_cls * centerness
+        box_cls = torch.sqrt(box_cls * centerness)
 
         results = []
         for i in range(N):
@@ -126,7 +131,7 @@ class LOFPostProcessor(torch.nn.Module):
     def forward_for_single_feature_map_fcos(
             self, locations, box_cls,
             box_regression, centerness,
-            image_sizes):
+            lof_tag, image_sizes):
         """
         Arguments:
             anchors: list[BoxList]
@@ -148,7 +153,7 @@ class LOFPostProcessor(torch.nn.Module):
         pre_nms_top_n = pre_nms_top_n.clamp(max=self.pre_nms_top_n)
 
         # multiply the classification scores with centerness scores
-        box_cls = box_cls * centerness[:, :, None]
+        box_cls = torch.sqrt(box_cls * centerness[:, :, None])
 
         results = []
         for i in range(N):
@@ -204,22 +209,14 @@ class LOFPostProcessor(torch.nn.Module):
         sampled_boxes = []
         for _, (l, o, b, c, lt) in enumerate(zip(locations, box_cls, box_regression, centerness, lof_tag)):
             sampled_boxes.append(
-                self.forward_for_single_feature_map(
+                self.forward_single_map(
                     l, o, b, c, lt, image_sizes
                 )
             )
 
-        # for _, (l, o, b, c) in enumerate(zip(locations, box_cls, box_regression, centerness)):
-        #     sampled_boxes.append(
-        #         self.forward_for_single_feature_map_fcos(
-        #             l, o, b, c, image_sizes
-        #         )
-        #     )
-
         boxlists = list(zip(*sampled_boxes))
         boxlists = [cat_boxlist(boxlist) for boxlist in boxlists]
-        boxlists = self.select_over_all_levels(boxlists)
-        # boxlists = self.select_over_all_levels_fcos(boxlists)
+        boxlists = self.select_fuc(boxlists)
 
         return boxlists
 
@@ -307,7 +304,8 @@ def make_lof_postprocessor(config):
         fpn_post_nms_top_n=fpn_post_nms_top_n,
         min_size=0,
         num_classes=config.MODEL.FCOS.NUM_CLASSES,
-        num_lof=config.MODEL.LOF.NUM_LOF
+        num_lof=config.MODEL.LOF.NUM_LOF,
+        use_lof=config.MODEL.LOF.USE_LOF
     )
 
     return box_selector
