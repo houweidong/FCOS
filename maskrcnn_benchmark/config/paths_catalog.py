@@ -5,7 +5,8 @@ import os
 
 
 class DatasetCatalog(object):
-    DATA_DIR = "/root/dataset/"
+    head = '/home/new/'
+    DATA_DIR = os.path.join(head, "dataset/")
     DATASETS = {
         "coco_2017_train": {
             "img_dir": "coco2017/train2017",
