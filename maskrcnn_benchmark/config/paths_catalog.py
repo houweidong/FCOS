@@ -5,7 +5,13 @@ import os
 
 
 class DatasetCatalog(object):
-    head = '/home/new/'
+    file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "location")
+    with open(file, 'r') as file_read:
+        location = file_read.readline().strip("\n")
+    if location == 'docker':
+        head = '/root/'
+    else:
+        head = '/home/new/'
     DATA_DIR = os.path.join(head, "dataset/")
     DATASETS = {
         "coco_2017_train": {
