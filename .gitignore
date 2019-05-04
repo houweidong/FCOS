@@ -34,5 +34,5 @@ dist/
 **/log.txt
 **/last_checkpoint
 tools/inference
-
-
+training_dir/
+*.loc

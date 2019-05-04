@@ -5,7 +5,7 @@ import os
 
 
 class DatasetCatalog(object):
-    file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "location")
+    file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "location.loc")
     with open(file, 'r') as file_read:
         location = file_read.readline().strip("\n")
     if location == 'docker':

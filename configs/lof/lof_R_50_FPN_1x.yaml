@@ -12,9 +12,9 @@ MODEL:
   LOF:
     LOF_TOWER_BRANCH: "new" # new cls or bbox
     NUM_LOF: 1
-    PULL_FACTOR: 0.5
-    PUSH_FACTOR: 0.5
-    USE_LOF: True
+    PULL_FACTOR: 1.
+    PUSH_FACTOR: 1.
+    USE_LOF: False
 DATASETS:
 #  TRAIN: ("coco_2014_train", "coco_2014_valminusminival")
 #  TEST: ("coco_2014_minival",)
