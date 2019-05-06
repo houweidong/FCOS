@@ -36,3 +36,4 @@ dist/
 tools/inference
 training_dir/
 *.loc
+*.yaml
