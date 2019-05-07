@@ -5,6 +5,7 @@ from torch import nn
 
 from .inference import make_lof_postprocessor
 from .loss import make_lof_loss_evaluator
+from .display import make_lof_display
 
 from maskrcnn_benchmark.layers import Scale
 
@@ -227,13 +228,17 @@ class LOFModule(torch.nn.Module):
 
         head = lof_head(cfg, in_channels)
 
+        result_display = make_lof_display(cfg)
+
         box_selector_test = make_lof_postprocessor(cfg)
 
         loss_evaluator = make_lof_loss_evaluator(cfg)
         self.head = head
+        self.result_display = result_display
         self.box_selector_test = box_selector_test
         self.loss_evaluator = loss_evaluator
         self.fpn_strides = cfg.MODEL.LOF.FPN_STRIDES
+        self.display = cfg.DISPLAY.SWITCH
 
     def forward(self, images, features, targets=None):
         """
@@ -261,8 +266,14 @@ class LOFModule(torch.nn.Module):
                 lof_tag, targets
             )
         else:
+            if self.display:
+                self._forward_display(
+                    box_cls,
+                    box_regression,
+                    centerness,
+                    lof_tag)
             return self._forward_test(
-                locations, box_cls, box_regression, 
+                locations, box_cls, box_regression,
                 centerness, lof_tag, images.image_sizes
             )
 
@@ -285,6 +296,9 @@ class LOFModule(torch.nn.Module):
             centerness, lof_tag, image_sizes
         )
         return boxes, {}
+
+    def _forward_display(self, box_cls, box_regression, centerness, lof_tag):
+        self.result_display(box_cls, box_regression, centerness, lof_tag)
 
     def compute_locations(self, features):
         locations = []

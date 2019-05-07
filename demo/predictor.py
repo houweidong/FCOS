@@ -221,6 +221,17 @@ class COCODemo(object):
             prediction.add_field("mask", masks)
         return prediction
 
+    def make_display(self, original_image):
+        # apply pre-processing to image
+        image = self.transforms(original_image)
+        # convert to an ImageList, padded so that it is divisible by
+        # cfg.DATALOADER.SIZE_DIVISIBILITY
+        image_list = to_image_list(image, self.cfg.DATALOADER.SIZE_DIVISIBILITY)
+        image_list = image_list.to(self.device)
+        # compute predictions
+        with torch.no_grad():
+            self.model(image_list)
+
     def select_top_predictions(self, predictions):
         """
         Select only predictions which have a `score` > self.confidence_threshold,
@@ -268,7 +279,7 @@ class COCODemo(object):
             box = box.to(torch.int64)
             top_left, bottom_right = box[:2].tolist(), box[2:].tolist()
             image = cv2.rectangle(
-                image, tuple(top_left), tuple(bottom_right), tuple(color), 1
+                image, tuple(top_left), tuple(bottom_right), tuple(color), 2
             )
 
         return image

@@ -39,6 +39,7 @@ class LOFLossComputation(object):
         self.box_reg_loss_func = IOULoss()
         self.centerness_loss_func = nn.BCEWithLogitsLoss()
         self.avg_weight = cfg.MODEL.LOF.AVG_WEIGHT
+        self.avg_lof_loss = cfg.MODEL.LOF.AVG_LOF_LOSS
 
     def prepare_targets(self, points, targets):
         object_sizes_of_interest = [
@@ -211,6 +212,7 @@ class LOFLossComputation(object):
                     centerness_img = centerness_targets_all[batch_index][select_mask]
                     mask = torch.arange(num_box).unsqueeze(0) != torch.arange(num_box).unsqueeze(1)
 
+                    centerness_img = centerness_img if self.avg_lof_loss else None
                     pull, push = self.lof_loss_func(lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img,
                                                     mask, centerness_img)
                     pull_loss += pull / N

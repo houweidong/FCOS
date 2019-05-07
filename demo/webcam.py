@@ -6,6 +6,7 @@ import os
 from maskrcnn_benchmark.config import cfg
 from maskrcnn_benchmark.utils.imports import import_file
 from predictor import COCODemo
+from matplotlib import pyplot as plt
 
 import time
 
@@ -21,7 +22,7 @@ def main():
     parser.add_argument(
         "--confidence-threshold",
         type=float,
-        default=0.5,
+        default=0.3,
         help="Minimum score for the prediction to be shown",
     )
     parser.add_argument(
@@ -97,11 +98,11 @@ def main():
             except Exception as info:
                 print(info)
                 continue
-
             composite = coco_demo.run_on_opencv_image(img)
             print("Time: {:.2f} s / img".format(time.time() - start_time))
-            cv2.imshow('COCO detections', composite)
-            cv2.waitKey(0)
+            fig, axes = plt.subplots(nrows=1, ncols=1)
+            axes.imshow(cv2.cvtColor(composite, cv2.COLOR_BGR2RGB))
+            plt.show()
 
 
 if __name__ == "__main__":

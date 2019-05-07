@@ -307,6 +307,7 @@ _C.MODEL.LOF.FPN_STRIDES = [8, 16, 32, 64, 128]
 _C.MODEL.LOF.PRIOR_PROB = 0.01
 _C.MODEL.LOF.INFERENCE_TH = 0.05
 _C.MODEL.LOF.AVG_WEIGHT = True
+_C.MODEL.LOF.AVG_LOF_LOSS = True
 _C.MODEL.LOF.LOF_TOWER_BRANCH = 'new'
 _C.MODEL.LOF.NMS_TH = 0.6
 _C.MODEL.LOF.PRE_NMS_TOP_N = 1000
@@ -462,6 +463,15 @@ _C.TEST.IMS_PER_BATCH = 8
 # Number of detections per image
 _C.TEST.DETECTIONS_PER_IMG = 100
 
+# ---------------------------------------------------------------------------- #
+# Specific display options
+# ---------------------------------------------------------------------------- #
+_C.DISPLAY = CN()
+_C.DISPLAY.SWITCH = False
+_C.DISPLAY.CLASS = False
+_C.DISPLAY.CLASS_ID = False
+_C.DISPLAY.CENTERNESS = False
+_C.DISPLAY.LOF = False
 
 # ---------------------------------------------------------------------------- #
 # Misc options
