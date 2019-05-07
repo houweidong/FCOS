@@ -215,7 +215,7 @@ class LOFLossComputation(object):
                     mask = torch.arange(num_box).unsqueeze(0) != torch.arange(num_box).unsqueeze(1)
 
                     pull, push = self.lof_loss_func(lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img,
-                                                    mask, torch.sqrt(centerness_img))
+                                                    mask, centerness_img)
                     pull_loss += pull / N
                     push_loss += push / N
 
