@@ -25,7 +25,8 @@ class LOFPostProcessor(torch.nn.Module):
         min_size,
         num_classes,
         num_lof,
-        use_lof
+        use_lof,
+        distance
     ):
         """
         Arguments:
@@ -49,6 +50,7 @@ class LOFPostProcessor(torch.nn.Module):
         self.select_fuc = self.select_over_all_levels if self.use_lof else self.select_over_all_levels_fcos
         self.forward_single_map = self.forward_for_single_feature_map if \
             self.use_lof else self.forward_for_single_feature_map_fcos
+        self.distance = distance
 
     def forward_for_single_feature_map(
             self, locations, box_cls,
@@ -71,7 +73,7 @@ class LOFPostProcessor(torch.nn.Module):
         centerness = centerness.reshape(N, -1).sigmoid()
         lof_tag = lof_tag.view(N, self.num_lof, H, W).permute(0, 2, 3, 1)
         # self.num_lof == 1
-        lof_tag = torch.round(lof_tag.reshape(N, -1)).int()
+        lof_tag = torch.round(lof_tag.reshape(N, -1) / self.distance).int()
 
         box_cls_id = torch.argmax(box_cls, dim=-1) + 1
         box_cls = torch.max(box_cls, dim=-1)[0]
@@ -305,7 +307,8 @@ def make_lof_postprocessor(config):
         min_size=0,
         num_classes=config.MODEL.FCOS.NUM_CLASSES,
         num_lof=config.MODEL.LOF.NUM_LOF,
-        use_lof=config.MODEL.LOF.USE_LOF
+        use_lof=config.MODEL.LOF.USE_LOF,
+        distance=config.MODEL.LOF.DISTANCE
     )
 
     return box_selector

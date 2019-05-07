@@ -32,7 +32,9 @@ class LOFLossComputation(object):
         )
         self.lof_loss_func = AELoss(
             cfg.MODEL.LOF.PULL_FACTOR,
-            cfg.MODEL.LOF.PUSH_FACTOR
+            cfg.MODEL.LOF.PUSH_FACTOR,
+            cfg.MODEL.LOF.DISTANCE,
+            cfg.MODEL.LOF.MARGIN_PUSH
         )
         # we make use of IOU Loss for bounding boxes regression,
         # but we found that L1 in log scale can yield a similar performance
@@ -212,9 +214,8 @@ class LOFLossComputation(object):
                     centerness_img = centerness_targets_all[batch_index][select_mask]
                     mask = torch.arange(num_box).unsqueeze(0) != torch.arange(num_box).unsqueeze(1)
 
-                    centerness_img = centerness_img if self.avg_lof_loss else None
                     pull, push = self.lof_loss_func(lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img,
-                                                    mask, centerness_img)
+                                                    mask, torch.sqrt(centerness_img))
                     pull_loss += pull / N
                     push_loss += push / N
 
