@@ -47,7 +47,7 @@ class AELossV2(nn.Module):
         self.tag_loss = nn.BCEWithLogitsLoss(reduction='none')
         self.num_lof = num_lof
 
-    def forward(self, lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img, mask, centerness_img=None):
+    def forward(self, lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img, centerness_img=None):
         # lof_tag_img               shape (selected 5level, num_lof)
         # lof_tag_avg_img           shape (num_lof, num_boxes)
         # lof_tag_avg_gather_img    shape (selected 5level, num_lof)
@@ -56,11 +56,13 @@ class AELossV2(nn.Module):
         # tag = torch.pow(lof_tag_img - torch.round(lof_tag_avg_gather_img), 2)
         tag = self.tag_loss(lof_tag_img, lof_tag_avg_gather_img)
 
-        dist = (0.5 + self.margin_push) - torch.abs(torch.sigmoid(lof_tag_avg_img.unsqueeze(1))
-                                                    - torch.sigmoid(lof_tag_avg_img.unsqueeze(2)))
-        dist_mask = ((dist < (0.5 + self.margin_push)).sum(0, keepdim=True) > 0)
-        mask = dist_mask & mask
+        dist = torch.abs(torch.sigmoid(lof_tag_avg_img.unsqueeze(1))
+                         - torch.sigmoid(lof_tag_avg_img.unsqueeze(2)))
+        mask = ((dist < (0.5 + self.margin_push)).sum(0, keepdim=True) > 0).repeat((self.num_lof, 1, 1))
+        # mask = dist_mask & mask
         # dist = dist_mask * dist
+        dist = (0.5 + self.margin_push) - dist
+        dist = nn.functional.relu(dist, inplace=True)
         dist = dist[mask]
 
         if centerness_img is not None:
