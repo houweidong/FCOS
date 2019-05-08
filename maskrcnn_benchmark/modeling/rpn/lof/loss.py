@@ -221,7 +221,8 @@ class LOFLossComputationV2(object):
                     # mask = (torch.arange(num_box, device=lof_tag_img.device).unsqueeze(0) != torch.arange(
                     #     num_box, device=lof_tag_img.device).unsqueeze(1)).unsqueeze(0).repeat((self.num_lof, 1, 1))
 
-                    pull, push = self.lof_loss_func(lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img, centerness_img)
+                    pull, push = self.lof_loss_func(lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img,
+                                                    num_box*(num_box - 1)*self.num_lof, centerness_img)
                     pull_loss += pull / N
                     push_loss += push / N
 

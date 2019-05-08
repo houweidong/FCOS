@@ -47,7 +47,7 @@ class AELossV2(nn.Module):
         self.tag_loss = nn.BCEWithLogitsLoss(reduction='none')
         self.num_lof = num_lof
 
-    def forward(self, lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img, centerness_img=None):
+    def forward(self, lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img, nmultinminus1mulnumlof, centerness_img=None):
         # lof_tag_img               shape (selected 5level, num_lof)
         # lof_tag_avg_img           shape (num_lof, num_boxes)
         # lof_tag_avg_gather_img    shape (selected 5level, num_lof)
@@ -71,7 +71,7 @@ class AELossV2(nn.Module):
             if mask.any():
                 # centerness = (centerness_img.unsqueeze(0) * centerness_img.unsqueeze(1))[mask]
                 # push = (dist * centerness).sum() / centerness.sum()
-                push = dist.sum() / mask.sum().float()
+                push = dist.sum() / nmultinminus1mulnumlof.float()
 
         else:
             pull = tag.mean()

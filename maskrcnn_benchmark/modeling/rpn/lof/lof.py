@@ -113,9 +113,9 @@ class LOFNewBranchHead(LOFHead):
         for modules in [self.lof_tower, self.lof_tag]:
             for l in modules.modules():
                 if isinstance(l, nn.Conv2d):
-                    torch.nn.init.normal_(l.weight, std=1)
-                    # torch.nn.init.constant_(l.bias, 0)
-                    torch.nn.init.normal_(l.bias, std=1)
+                    torch.nn.init.normal_(l.weight, std=0.1)
+                    torch.nn.init.constant_(l.bias, 0)
+                    # torch.nn.init.normal_(l.bias, std=1)
 
     def forward(self, x):
         logits = []
