@@ -79,7 +79,7 @@ class LOFPostProcessor(torch.nn.Module):
             lof_tag = torch.round(lof_tag.reshape((N, -1)) / self.distance).int()
         elif self.version == 2:
             lof_tag = torch.round(lof_tag.reshape((N, self.num_lof, -1)).sigmoid())
-            exp = torch.arange(self.num_lof)[None, :, None].repeat((N, 1, H*W))
+            exp = torch.arange(self.num_lof, device=lof_tag.device)[None, :, None].repeat((N, 1, H*W)).float()
             factor = torch.pow(2, exp)
             lof_tag = (lof_tag * factor).sum(1)
         else:
@@ -105,13 +105,7 @@ class LOFPostProcessor(torch.nn.Module):
             # per_class = per_class[per_candidate_inds]
             # per_box_regression = per_box_regression[per_candidate_inds]
             per_locations = locations[per_candidate_inds]
-
-            if self.num_lof == 1:
-                per_lof_tag = lof_tag[i][per_candidate_inds]
-            else:
-                # TODO
-                per_lof_tag = None
-
+            per_lof_tag = lof_tag[i][per_candidate_inds]
             per_pre_nms_top_n = pre_nms_top_n[i]
 
             if per_candidate_inds.sum().item() > per_pre_nms_top_n.item():

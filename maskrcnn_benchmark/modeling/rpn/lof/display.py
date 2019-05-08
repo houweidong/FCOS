@@ -30,6 +30,8 @@ class LOFDispaly(torch.nn.Module):
         min_size,
         num_classes,
         num_lof,
+        distance,
+        version
         # use_lof
     ):
         """
@@ -54,6 +56,8 @@ class LOFDispaly(torch.nn.Module):
         self.min_size = min_size
         self.num_classes = num_classes
         self.num_lof = num_lof
+        self.distance = distance
+        self.version = version
         # self.use_lof = use_lof
 
     def forward_for_single_feature_map(self, box_cls, box_regression, centerness, lof_tag, axes):
@@ -68,7 +72,16 @@ class LOFDispaly(torch.nn.Module):
         box_cls = box_cls.view(N, C, H, W).permute(0, 2, 3, 1).sigmoid()
 
         centerness = centerness.view(N, 1, H, W).permute(0, 2, 3, 1).sigmoid().squeeze()
-        lof_tag = torch.round(lof_tag.view(N, self.num_lof, H, W).permute(0, 2, 3, 1)).int().squeeze()
+
+        if self.version == 1:
+            lof_tag = lof_tag.view(N, self.num_lof, H, W).permute(0, 2, 3, 1).squeeze()
+        elif self.version == 2:
+            lof_tag = torch.round(lof_tag.view(N, self.num_lof, H, W).permute(0, 2, 3, 1).sigmoid())
+            exp = torch.arange(self.num_lof, device=lof_tag.device)[None, None, None, :].repeat((N, H, W, 1)).float()
+            factor = torch.pow(2, exp)
+            lof_tag = (lof_tag * factor).sum(-1).squeeze(0)
+
+        # lof_tag = torch.round(lof_tag.view(N, self.num_lof, H, W).permute(0, 2, 3, 1)).int().squeeze()
         box_cls_id = (torch.argmax(box_cls, dim=-1) + 1).squeeze()
         box_cls = torch.sqrt(torch.max(box_cls, dim=-1)[0].squeeze() * centerness)
         start = 0
@@ -122,6 +135,8 @@ def make_lof_display(config):
         min_size=0,
         num_classes=config.MODEL.FCOS.NUM_CLASSES,
         num_lof=config.MODEL.LOF.NUM_LOF,
+        distance=config.MODEL.LOF.DISTANCE,
+        version=config.MODEL.LOF.VERSION
         # use_lof=config.MODEL.LOF.USE_LOF
     )
 
