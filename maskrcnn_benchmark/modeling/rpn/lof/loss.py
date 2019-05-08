@@ -218,10 +218,10 @@ class LOFLossComputationV2(object):
                     lof_tag_avg_img = lof_tag_avg[batch_index, :, :num_box]
                     lof_tag_avg_gather_img = lof_tag_avg_gather[batch_index][select_mask]
                     centerness_img = centerness_targets_all[batch_index][select_mask]
-                    # mask = (torch.arange(num_box, device=lof_tag_img.device).unsqueeze(0) != torch.arange(
-                    #     num_box, device=lof_tag_img.device).unsqueeze(1)).unsqueeze(0).repeat((self.num_lof, 1, 1))
+                    mask = (torch.arange(num_box, device=lof_tag_img.device).unsqueeze(0) != torch.arange(
+                        num_box, device=lof_tag_img.device).unsqueeze(1)).unsqueeze(0).repeat((self.num_lof, 1, 1))
 
-                    pull, push = self.lof_loss_func(lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img,
+                    pull, push = self.lof_loss_func(lof_tag_img, lof_tag_avg_img, lof_tag_avg_gather_img, mask,
                                                     num_box*(num_box - 1)*self.num_lof, centerness_img)
                     pull_loss += pull / N
                     push_loss += push / N
