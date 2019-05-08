@@ -26,7 +26,8 @@ class LOFPostProcessor(torch.nn.Module):
         num_classes,
         num_lof,
         use_lof,
-        distance
+        distance,
+        version
     ):
         """
         Arguments:
@@ -51,6 +52,7 @@ class LOFPostProcessor(torch.nn.Module):
         self.forward_single_map = self.forward_for_single_feature_map if \
             self.use_lof else self.forward_for_single_feature_map_fcos
         self.distance = distance
+        self.version = version
 
     def forward_for_single_feature_map(
             self, locations, box_cls,
@@ -66,14 +68,22 @@ class LOFPostProcessor(torch.nn.Module):
 
         # put in the same format as locations
         box_cls = box_cls.view(N, C, H, W).permute(0, 2, 3, 1)
-        box_cls = box_cls.reshape(N, -1, C).sigmoid()
+        box_cls = box_cls.reshape((N, -1, C)).sigmoid()
         box_regression = box_regression.view(N, 4, H, W).permute(0, 2, 3, 1)
-        box_regression = box_regression.reshape(N, -1, 4)
+        box_regression = box_regression.reshape((N, -1, 4))
         centerness = centerness.view(N, 1, H, W).permute(0, 2, 3, 1)
-        centerness = centerness.reshape(N, -1).sigmoid()
+        centerness = centerness.reshape((N, -1)).sigmoid()
         lof_tag = lof_tag.view(N, self.num_lof, H, W).permute(0, 2, 3, 1)
         # self.num_lof == 1
-        lof_tag = torch.round(lof_tag.reshape(N, -1) / self.distance).int()
+        if self.version == 1:
+            lof_tag = torch.round(lof_tag.reshape((N, -1)) / self.distance).int()
+        elif self.version == 2:
+            lof_tag = torch.round(lof_tag.reshape((N, self.num_lof, -1)).sigmoid())
+            exp = torch.arange(self.num_lof)[None, :, None].repeat((N, 1, H*W))
+            factor = torch.pow(2, exp)
+            lof_tag = (lof_tag * factor).sum(1)
+        else:
+            raise Exception("where the version come from")
 
         box_cls_id = torch.argmax(box_cls, dim=-1) + 1
         box_cls = torch.max(box_cls, dim=-1)[0]
@@ -308,7 +318,8 @@ def make_lof_postprocessor(config):
         num_classes=config.MODEL.FCOS.NUM_CLASSES,
         num_lof=config.MODEL.LOF.NUM_LOF,
         use_lof=config.MODEL.LOF.USE_LOF,
-        distance=config.MODEL.LOF.DISTANCE
+        distance=config.MODEL.LOF.DISTANCE,
+        version=config.MODEL.LOF.VERSION
     )
 
     return box_selector
