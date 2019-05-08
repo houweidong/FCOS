@@ -58,7 +58,7 @@ class AELossV2(nn.Module):
 
         dist = torch.abs(torch.sigmoid(lof_tag_avg_img.unsqueeze(1))
                          - torch.sigmoid(lof_tag_avg_img.unsqueeze(2)))
-        dist_mask = ((dist < (0.5 + self.margin_push)).sum(0, keepdim=True) > 0).repeat((self.num_lof, 1, 1))
+        dist_mask = ((dist > (0.5 + self.margin_push)).sum(0, keepdim=True) == 0).repeat((self.num_lof, 1, 1))
         mask = dist_mask & mask
         dist = (0.5 + self.margin_push) - dist
         dist = nn.functional.relu(dist, inplace=True)
