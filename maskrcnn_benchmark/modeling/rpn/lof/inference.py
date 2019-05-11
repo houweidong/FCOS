@@ -78,10 +78,10 @@ class LOFPostProcessor(torch.nn.Module):
         if self.version == 1:
             lof_tag = torch.round(lof_tag.reshape((N, -1)) / self.distance).int()
         elif self.version == 2:
-            lof_tag = torch.round(lof_tag.reshape((N, self.num_lof, -1)).sigmoid())
-            exp = torch.arange(self.num_lof, device=lof_tag.device)[None, :, None].repeat((N, 1, H*W)).float()
+            lof_tag = torch.round(lof_tag.reshape((N, -1, self.num_lof)).sigmoid())
+            exp = torch.arange(self.num_lof, device=lof_tag.device)[None, None, :].repeat((N, H*W, 1)).float()
             factor = torch.pow(2, exp)
-            lof_tag = (lof_tag * factor).sum(1)
+            lof_tag = (lof_tag * factor).sum(-1)
         else:
             raise Exception("where the version come from")
 
